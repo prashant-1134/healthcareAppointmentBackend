@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,6 +62,24 @@ public class ScheduleController {
             throw new RuntimeException("Schedule not found");
         }
     }
+
+    @GetMapping("/doctor/{doctorId}/available-times/{appointmentDate}")
+    public List<LocalTime> getAvailableTimes(
+            @PathVariable Long doctorId,
+            @PathVariable String appointmentDate) {
+
+        // Convert appointmentDate string to LocalDate
+        LocalDate date = LocalDate.parse(appointmentDate);
+
+        // Fetch unbooked schedules for the doctor on the given date
+        List<Schedule> unbookedSchedules = scheduleRepository.findByDoctorDoctorIdAndAvailableDateAndIsBookedFalse(doctorId, date);
+
+        // Extract available time slots (start times of unbooked schedules)
+        return unbookedSchedules.stream()
+                .map(Schedule::getStartTime)
+                .toList();
+    }
+
 
     // Delete a schedule
     @DeleteMapping("/delete/{scheduleId}")
